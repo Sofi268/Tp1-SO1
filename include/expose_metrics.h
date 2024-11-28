@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h> // Para sleep
+#include <unistd.h> 
 
 /**
  * @brief Tamaño del buffer utilizado para almacenar datos.
@@ -148,6 +148,12 @@ void update_inactive_time();
 void update_IO_wait();
 
 /**
+ * @brief Llama a los update() de las metricas en la lista.
+ * @param metrics Lista de métricas a actualizar.
+ */
+void update_Metrics(char* metrics[]);
+
+/**
  * @brief Función del hilo para exponer las métricas vía HTTP en el puerto 8000.
  * @param arg Argumento no utilizado.
  * @return NULL
@@ -155,10 +161,19 @@ void update_IO_wait();
 void* expose_metrics(void* arg);
 
 /**
- * @brief Inicializar mutex y métricas.
+ * @brief Verifica si una métrica está en la lista de métricas.
+ *
+ * @param metric Nombre de la métrica a buscar.
+ * @param metrics Lista de métricas.
+ * @return true Si la métrica está en la lista, false en caso contrario.
  */
+int is_metric(const char* metric, char* metrics[]);
 
-void init_metrics();
+/**
+ * @brief Inicializar mutex y métricas.
+ * @param metrics Metricas a exponer.
+ */
+void init_metrics(char* metrics[]);
 
 /**
  * @brief Asegura que no haya error en el registro de las metricas

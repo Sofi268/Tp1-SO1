@@ -437,6 +437,79 @@ void update_IO_wait()
     }
 }
 
+void update_Metrics(char* metrics[]){
+
+    if (is_metric("cpu_usage", metrics)) {
+        update_cpu_gauge();
+    }
+    if (is_metric("memory_usage", metrics)) {
+        update_memory_gauge();
+    }
+    if (is_metric("free_memory", metrics)) {
+        update_free_memory_gauge();
+    }
+    if (is_metric("used_memory", metrics)) {
+        update_used_memory_gauge();
+    }
+    if (is_metric("disk_reads", metrics)) {
+        update_disk_reads();
+    }
+    if (is_metric("loop_reads", metrics)) {
+        update_loop_reads();
+    }
+    if (is_metric("disk_writes", metrics)) {
+        update_disk_writes();
+    }
+    if (is_metric("loop_writes", metrics)) {
+        update_loop_writes();
+    }
+    if (is_metric("time_reads", metrics)) {
+        update_time_reads();
+    }
+    if (is_metric("time_writes", metrics)) {
+        update_time_writes();
+    }
+    if (is_metric("IO_in_progress", metrics)) {
+        update_IO_in_progress();
+    }
+    if (is_metric("time_in_IO", metrics)) {
+        update_time_in_IO();
+    }
+    if (is_metric("num_processes", metrics)) {
+        update_num_processes();
+    }
+    if (is_metric("received_bytes", metrics)) {
+        update_received_bytes();
+    }
+    if (is_metric("sent_bytes", metrics)) {
+        update_sent_bytes();
+    }
+    if (is_metric("received_packets", metrics)) {
+        update_received_packets();
+    }
+    if (is_metric("sent_packets", metrics)) {
+        update_sent_packets();
+    }
+    if (is_metric("received_errors", metrics)) {
+        update_received_errors();
+    }
+    if (is_metric("sent_errors", metrics)) {
+        update_sent_errors();
+    }
+    if (is_metric("user_time", metrics)) {
+        update_user_time();
+    }
+    if (is_metric("kernel_time", metrics)) {
+        update_kernel_time();
+    }
+    if (is_metric("inactive_time", metrics)) {
+        update_inactive_time();
+    }
+    if (is_metric("IO_wait", metrics)) {
+        update_IO_wait();
+    }
+}
+
 void* expose_metrics(void* arg)
 {
     (void)arg; // Argumento no utilizado
@@ -463,7 +536,25 @@ void* expose_metrics(void* arg)
     return NULL;
 }
 
-void init_metrics()
+// Función para verificar si una métrica está en el arreglo de métricas
+int is_metric(const char* metric, char* metrics[])
+{
+    if (metrics == NULL) {
+        return true;  // Si `metrics` es NULL, retornamos true para registrar todas las métricas
+    }
+
+    for (int i = 0; metrics[i] != NULL; i++)
+    {
+        if (strcmp(metric, metrics[i]) == 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Función para inicializar las métricas
+void init_metrics(char* metrics[])
 {
     // Inicializamos el mutex
     if (pthread_mutex_init(&lock, NULL) != 0)
@@ -479,181 +570,248 @@ void init_metrics()
         return;
     }
 
-    // Creamos la métrica para el uso de CPU
-    cpu_usage_metric = prom_gauge_new("cpu_usage_percentage", "Porcentaje de uso de CPU", 0, NULL);
-    if (cpu_usage_metric == NULL)
+    // Registrar las métricas según el arreglo `metrics`, si es NULL, registrar todas
+    if (is_metric("cpu_usage", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de uso de CPU\n");
-        return;
+        cpu_usage_metric = prom_gauge_new("cpu_usage_metric", "Porcentaje de uso de CPU", 0, NULL);
+        if (cpu_usage_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de uso de CPU\n");
+            return;
+        }
     }
 
-    // Creamos la métrica para el uso de memoria
-    memory_usage_metric = prom_gauge_new("memory_usage_percentage", "Porcentaje de uso de memoria", 0, NULL);
-    if (memory_usage_metric == NULL)
+    if (is_metric("memory_usage", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de uso de memoria\n");
-        return;
+        memory_usage_metric = prom_gauge_new("memory_usage_metric", "Porcentaje de uso de memoria", 0, NULL);
+        if (memory_usage_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de uso de memoria\n");
+            return;
+        }
     }
 
-    // Creamos la métrica para la memoria disponible
-    free_memory_metric = prom_gauge_new("free_memory_metric", "Memoria Disponible", 0, NULL);
-    if (free_memory_metric == NULL)
+    if (is_metric("free_memory", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de memoria disponible\n");
-        return;
+        free_memory_metric = prom_gauge_new("free_memory_metric", "Memoria Disponible", 0, NULL);
+        if (free_memory_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de memoria disponible\n");
+            return;
+        }
     }
 
-    // Creamos la métrica para el uso de memoria
-    used_memory_metric = prom_gauge_new("used_memory_metric", "Memoria en Uso", 0, NULL);
-    if (used_memory_metric == NULL)
+    if (is_metric("used_memory", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de memoria en uso\n");
-        return;
+        used_memory_metric = prom_gauge_new("used_memory_metric", "Memoria en Uso", 0, NULL);
+        if (used_memory_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de memoria en uso\n");
+            return;
+        }
     }
 
-    // Creamos la métrica para la memoria total
-    total_memory_metric = prom_gauge_new("total_memory_metric", "Memoria Total", 0, NULL);
-    if (total_memory_metric == NULL)
+    if (is_metric("total_memory", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de memoria total\n");
-        return;
+        total_memory_metric = prom_gauge_new("total_memory_metric", "Memoria Total", 0, NULL);
+        if (total_memory_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de memoria total\n");
+            return;
+        }
     }
 
-    // Creamos la métrica para las lecturas de disco SSD
-    disk_reads_metric = prom_gauge_new("disk_reads_metric", "Lecturas de Disco Total", 0, NULL);
-    if (disk_reads_metric == NULL)
+    if (is_metric("disk_reads", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de lecturas de disco total\n");
-        return;
+        disk_reads_metric = prom_gauge_new("disk_reads_metric", "Lecturas de Disco Total", 0, NULL);
+        if (disk_reads_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de lecturas de disco total\n");
+            return;
+        }
     }
 
-    loop_reads_metric = prom_gauge_new("loop_reads_metric", "Lecturas de Dispositivos de Montaje de archivos", 0, NULL);
-    if (loop_reads_metric == NULL)
+    if (is_metric("loop_reads", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de lecturas de dispositivos de montaje \n");
-        return;
+        loop_reads_metric = prom_gauge_new("loop_reads_metric", "Lecturas de Dispositivos de Montaje de archivos", 0, NULL);
+        if (loop_reads_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de lecturas de dispositivos de montaje \n");
+            return;
+        }
     }
 
-    disk_writes_metric = prom_gauge_new("disk_writes_metric", "Escrituras de Disco Total", 0, NULL);
-    if (disk_writes_metric == NULL)
+    if (is_metric("disk_writes", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de escrituras de disco total\n");
-        return;
+        disk_writes_metric = prom_gauge_new("disk_writes_metric", "Escrituras de Disco Total", 0, NULL);
+        if (disk_writes_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de escrituras de disco total\n");
+            return;
+        }
     }
 
-    loop_writes_metric = prom_gauge_new("loop_writes_metric", "Escrituras de Dispositivos de montaje", 0, NULL);
-    if (loop_writes_metric == NULL)
+    if (is_metric("loop_writes", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de escrituras de dispositivos de montaje\n");
-        return;
+        loop_writes_metric = prom_gauge_new("loop_writes_metric", "Escrituras de Dispositivos de montaje", 0, NULL);
+        if (loop_writes_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de escrituras de dispositivos de montaje\n");
+            return;
+        }
     }
 
-    time_reads_metric = prom_gauge_new("times_reads_metric", "Tiempos de lectura de dispositivos", 0, NULL);
-    if (time_reads_metric == NULL)
+    if (is_metric("time_reads", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de tiempo de lectura de los dispositivos \n");
-        return;
+        time_reads_metric = prom_gauge_new("time_reads_metric", "Tiempos de lectura de dispositivos", 0, NULL);
+        if (time_reads_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de tiempo de lectura de los dispositivos \n");
+            return;
+        }
     }
 
-    time_writes_metric = prom_gauge_new("times_writes_metric", "Tiempo de escritura de dispositivos", 0, NULL);
-    if (time_writes_metric == NULL)
+    if (is_metric("time_writes", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de escritura de los dispositivos \n");
-        return;
+        time_writes_metric = prom_gauge_new("time_writes_metric", "Tiempo de escritura de dispositivos", 0, NULL);
+        if (time_writes_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de escritura de los dispositivos \n");
+            return;
+        }
     }
 
-    IO_in_progress_metric = prom_gauge_new("IO_in_progress_metric", "Cantidad de operaciones de E/S", 0, NULL);
-    if (IO_in_progress_metric == NULL)
+    if (is_metric("IO_in_progress", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de cantidad de operaciones de E/S \n");
-        return;
+        IO_in_progress_metric = prom_gauge_new("IO_in_progress_metric", "Cantidad de operaciones de E/S", 0, NULL);
+        if (IO_in_progress_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de cantidad de operaciones de E/S \n");
+            return;
+        }
     }
 
-    time_IO_metric = prom_gauge_new("time_IO_metric", "Tiempo de operaciones de E/S", 0, NULL);
-    if (time_IO_metric == NULL)
+    if (is_metric("time_IO", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica tiempo de operaciones de E/S \n");
-        return;
+        time_IO_metric = prom_gauge_new("time_IO_metric", "Tiempo de operaciones de E/S", 0, NULL);
+        if (time_IO_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica tiempo de operaciones de E/S \n");
+            return;
+        }
     }
 
-    num_processes_metric = prom_gauge_new("num_processes_metric", "Cantidad de procesos en ejecución", 0, NULL);
-    if (num_processes_metric == NULL)
+    if (is_metric("num_processes", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de procesos en ejecución\n");
-        return;
+        num_processes_metric = prom_gauge_new("num_processes_metric", "Cantidad de procesos en ejecución", 0, NULL);
+        if (num_processes_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de procesos en ejecución\n");
+            return;
+        }
     }
 
-    received_bytes_metric = prom_gauge_new("received_bytes_metric", "Cantidad de bytes recibidos", 0, NULL);
-    if (received_bytes_metric == NULL)
+    if (is_metric("received_bytes", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de bytes recibidos\n");
-        return;
+        received_bytes_metric = prom_gauge_new("received_bytes_metric", "Cantidad de bytes recibidos", 0, NULL);
+        if (received_bytes_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de bytes recibidos\n");
+            return;
+        }
     }
 
-    sent_bytes_metric = prom_gauge_new("sent_bytes_metric", "Cantidad de bytes enviados", 0, NULL);
-    if (sent_bytes_metric == NULL)
+    if (is_metric("sent_bytes", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de bytes enviados\n");
-        return;
+        sent_bytes_metric = prom_gauge_new("sent_bytes_metric", "Cantidad de bytes enviados", 0, NULL);
+        if (sent_bytes_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de bytes enviados\n");
+            return;
+        }
     }
 
-    received_packets_metric = prom_gauge_new("received_packets_metric", "Cantidad de paquetes recibidos", 0, NULL);
-    if (received_packets_metric == NULL)
+    if (is_metric("received_packets", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de paquetes recibidos\n");
-        return;
+        received_packets_metric = prom_gauge_new("received_packets_metric", "Cantidad de paquetes recibidos", 0, NULL);
+        if (received_packets_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de paquetes recibidos\n");
+            return;
+        }
     }
 
-    sent_packets_metric = prom_gauge_new("sent_packets_metric", "Cantidad de paquetes enviados", 0, NULL);
-    if (sent_packets_metric == NULL)
+    if (is_metric("sent_packets", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de paquetes enviados\n");
-        return;
+        sent_packets_metric = prom_gauge_new("sent_packets_metric", "Cantidad de paquetes enviados", 0, NULL);
+        if (sent_packets_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de paquetes enviados\n");
+            return;
+        }
     }
 
-    received_errors_metric = prom_gauge_new("received_errors_metric", "Cantidad de errores de recepción", 0, NULL);
-    if (received_errors_metric == NULL)
+    if (is_metric("received_errors", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de errores de recepción\n");
-        return;
+        received_errors_metric = prom_gauge_new("received_errors_metric", "Cantidad de errores de recepción", 0, NULL);
+        if (received_errors_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de errores de recepción\n");
+            return;
+        }
     }
 
-    sent_errors_metric = prom_gauge_new("sent_errors_metric", "Cantidad de errores de envío", 0, NULL);
-    if (sent_errors_metric == NULL)
+    if (is_metric("sent_errors", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de errores de envío\n");
-        return;
+        sent_errors_metric = prom_gauge_new("sent_errors_metric", "Cantidad de errores de envío", 0, NULL);
+        if (sent_errors_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de errores de envío\n");
+            return;
+        }
     }
 
-    user_time_metric = prom_gauge_new("user_time_metric", "Tiempo de CPU en modo usuario", 0, NULL);
-    if (user_time_metric == NULL)
+    if (is_metric("user_time", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de tiempo de CPU en modo usuario\n");
-        return;
+        user_time_metric = prom_gauge_new("user_time_metric", "Tiempo de CPU en modo usuario", 0, NULL);
+        if (user_time_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de tiempo de CPU en modo usuario\n");
+            return;
+        }
     }
 
-    kernel_time_metric = prom_gauge_new("kernel_time_metric", "Tiempo de CPU en modo kernel", 0, NULL);
-    if (kernel_time_metric == NULL)
+    if (is_metric("kernel_time", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de tiempo de CPU en modo kernel\n");
-        return;
+        kernel_time_metric = prom_gauge_new("kernel_time_metric", "Tiempo de CPU en modo kernel", 0, NULL);
+        if (kernel_time_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de tiempo de CPU en modo kernel\n");
+            return;
+        }
     }
 
-    inactive_time_metric = prom_gauge_new("inactive_time_metric", "Tiempo de inactividad de la CPU", 0, NULL);
-    if (inactive_time_metric == NULL)
+    if (is_metric("inactive_time", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de tiempo de inactividad de la CPU\n");
-        return;
+        inactive_time_metric = prom_gauge_new("inactive_time_metric", "Tiempo de inactividad de la CPU", 0, NULL);
+        if (inactive_time_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de tiempo de inactividad de la CPU\n");
+            return;
+        }
     }
 
-    io_wait_metric = prom_gauge_new("io_wait_metric", "Tiempo de espera de entrada/salida de la CPU", 0, NULL);
-    if (io_wait_metric == NULL)
+    if (is_metric("io_wait", metrics))
     {
-        fprintf(stderr, "Error al crear la métrica de tiempo de espera de I/O\n");
-        return;
+        io_wait_metric = prom_gauge_new("io_wait_metric", "Tiempo de espera de entrada/salida de la CPU", 0, NULL);
+        if (io_wait_metric == NULL)
+        {
+            fprintf(stderr, "Error al crear la métrica de tiempo de espera de I/O\n");
+            return;
+        }
     }
 
-    // Registramos las métricas en el registro por defecto
+    // Registramos las métricas en el registro por defecto solo si están creadas
     bool reg_metricas = registroMetricas();
     if (reg_metricas)
     {
@@ -664,53 +822,54 @@ void init_metrics()
 
 bool registroMetricas()
 {
-    if (prom_collector_registry_must_register_metric(cpu_usage_metric) == NULL)
+    // Comprobamos si cada métrica está creada y la registramos
+    if (cpu_usage_metric && prom_collector_registry_must_register_metric(cpu_usage_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(memory_usage_metric) == NULL)
+    if (memory_usage_metric && prom_collector_registry_must_register_metric(memory_usage_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(free_memory_metric) == NULL)
+    if (free_memory_metric && prom_collector_registry_must_register_metric(free_memory_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(used_memory_metric) == NULL)
+    if (used_memory_metric && prom_collector_registry_must_register_metric(used_memory_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(total_memory_metric) == NULL)
+    if (total_memory_metric && prom_collector_registry_must_register_metric(total_memory_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(disk_reads_metric) == NULL)
+    if (disk_reads_metric && prom_collector_registry_must_register_metric(disk_reads_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(loop_reads_metric) == NULL)
+    if (loop_reads_metric && prom_collector_registry_must_register_metric(loop_reads_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(disk_writes_metric) == NULL)
+    if (disk_writes_metric && prom_collector_registry_must_register_metric(disk_writes_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(loop_writes_metric) == NULL)
+    if (loop_writes_metric && prom_collector_registry_must_register_metric(loop_writes_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(time_reads_metric) == NULL)
+    if (time_reads_metric && prom_collector_registry_must_register_metric(time_reads_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(time_writes_metric) == NULL)
+    if (time_writes_metric && prom_collector_registry_must_register_metric(time_writes_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(IO_in_progress_metric) == NULL)
+    if (IO_in_progress_metric && prom_collector_registry_must_register_metric(IO_in_progress_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(time_IO_metric) == NULL)
+    if (time_IO_metric && prom_collector_registry_must_register_metric(time_IO_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(num_processes_metric) == NULL)
+    if (num_processes_metric && prom_collector_registry_must_register_metric(num_processes_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(received_bytes_metric) == NULL)
+    if (received_bytes_metric && prom_collector_registry_must_register_metric(received_bytes_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(sent_bytes_metric) == NULL)
+    if (sent_bytes_metric && prom_collector_registry_must_register_metric(sent_bytes_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(received_packets_metric) == NULL)
+    if (received_packets_metric && prom_collector_registry_must_register_metric(received_packets_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(sent_packets_metric) == NULL)
+    if (sent_packets_metric && prom_collector_registry_must_register_metric(sent_packets_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(received_errors_metric) == NULL)
+    if (received_errors_metric && prom_collector_registry_must_register_metric(received_errors_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(sent_errors_metric) == NULL)
+    if (sent_errors_metric && prom_collector_registry_must_register_metric(sent_errors_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(user_time_metric) == NULL)
+    if (user_time_metric && prom_collector_registry_must_register_metric(user_time_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(kernel_time_metric) == NULL)
+    if (kernel_time_metric && prom_collector_registry_must_register_metric(kernel_time_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(inactive_time_metric) == NULL)
+    if (inactive_time_metric && prom_collector_registry_must_register_metric(inactive_time_metric) == NULL)
         return true;
-    if (prom_collector_registry_must_register_metric(io_wait_metric) == NULL)
+    if (io_wait_metric && prom_collector_registry_must_register_metric(io_wait_metric) == NULL)
         return true;
 
     return false;

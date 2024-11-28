@@ -1,5 +1,10 @@
 #include "metrics.h"
 
+// Valores iniciales
+int sampleTime = 5;
+bool isTotMem = true;
+char **new_metrics = NULL;   
+
 double get_memory_usage()
 {
     FILE* fp;
@@ -828,3 +833,67 @@ double get_IO_wait()
 
     return io_time;
 }
+
+int getSampleTime() {
+    return sampleTime;
+}
+
+bool getIsTotMem() {
+    return isTotMem;
+}
+
+char **getMetrics() {
+    return new_metrics;
+}
+
+
+void updateSampleTime(int sample_time) {
+    sampleTime = sample_time;
+}
+
+void updateTotMem(int memTot) {
+    isTotMem = memTot;
+}
+
+void updateMetrics(char ***target, char *new_values[], int count) {
+    // Liberar memoria del arreglo antiguo
+    if (*target != NULL) {
+        for (int i = 0; (*target)[i] != NULL; i++) {
+            free((*target)[i]);
+        }
+        free(*target);
+    }
+
+    // Si no hay nuevas métricas, asignar NULL
+    if (count <= 0) {
+        *target = NULL;
+        return;
+    }
+
+    // Asignar memoria para el nuevo arreglo
+    *target = malloc(sizeof(char *) * (count + 1));
+    if (!*target) {
+        perror("Error al asignar memoria para las métricas");
+        exit(EXIT_FAILURE);
+    }
+
+    // Copiar las métricas desde new_values
+    for (int i = 0; i < count; i++) {
+        (*target)[i] = strdup(new_values[i]); // Copiar cada cadena
+        if (!(*target)[i]) {
+            perror("Error al duplicar la cadena de métricas");
+            exit(EXIT_FAILURE);
+        }
+    }
+    (*target)[count] = NULL; // Marcar el final del arreglo
+}
+
+void updateParams(int argc, char *argv[]) {
+    int sample_time = atoi(argv[0]);
+    int memTotal = atoi(argv[1]);
+    updateSampleTime(sample_time);
+    updateTotMem(memTotal);
+    updateMetrics(&new_metrics, argv + 2, argc - 2); 
+}
+
+

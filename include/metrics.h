@@ -225,3 +225,60 @@ double get_inactive_time();
  * @return Devuelve el total de tiempo de espera por operaciones de I/O.
  */
 double get_IO_wait();
+
+/**
+ * @brief Obtiene el tiempo de muestreo.
+ *
+ * @return Tiempo de muestreo actual.
+ */
+int getSampleTime();
+
+/**
+ * @brief Obtiene si la metrica de la memoria se encuentra en la lista de las metricas.
+ *
+ * @return Devuelve `true` si esta, `false` en caso contrario.
+ */
+bool getIsTotMem();
+
+/**
+ * @brief Obtiene las métricas que se solicitan exponer.
+ *
+ * @return Arreglo con las métricas actuales.
+ */
+char **getMetrics();
+
+/**
+ * @brief Actualiza el tiempo de muestreo.
+ *
+ * @param sample Tiempo de muestreo en segundos.
+ */
+void updateSampleTime(int sample);
+
+/**
+ * @brief Actualiza el indicador de memoria total.
+ */
+void updateTotMem(int memTot);
+
+/**
+ * @brief Actualiza las métricas a exponer y libera el espacio de las antiguas.
+ *
+ * @param target Arreglo con metricas viejas.
+ * @param new_metrics Nuevas métricas.
+ * @param count Numero de metricas a agregar.
+ */
+void updateMetrics(char ***target, char *new_values[], int count);
+
+/**
+ * @brief Actualiza los parámetros de las metricas a exponer.
+ *
+ * Esta función toma los valores de la línea de comandos (`argv[]`) y los usa para actualizar 
+ * el tiempo de muestreo, la configuración de memoria total y las métricas a exponer. 
+ * Llama a las funciones correspondientes para actualizar estos parámetros.
+ *
+ * @param argc Número de argumentos pasados a la función.
+ * @param argv Arreglo de cadenas con los valores de los parámetros.
+ *    - `argv[0]`: Nuevo tiempo de muestreo (entero).
+ *    - `argv[1]`: Nuevo valor de memoria total (0 o 1).
+ *    - `argv[2]` en adelante: Nuevas métricas a exponer.
+ */
+void updateParams(int argc, char *argv[]);
