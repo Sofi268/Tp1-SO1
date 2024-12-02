@@ -282,3 +282,4 @@ void updateMetrics(char ***target, char *new_values[], int count);
  *    - `argv[2]` en adelante: Nuevas métricas a exponer.
  */
 void updateParams(int argc, char *argv[]);
+
