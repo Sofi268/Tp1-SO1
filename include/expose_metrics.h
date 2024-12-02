@@ -184,3 +184,4 @@ bool registroMetricas();
  * @brief Destructor de mutex
  */
 void destroy_mutex();
+
